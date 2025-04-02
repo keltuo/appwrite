@@ -1,1 +1,1 @@
-Get the number of usage stats that are waiting to be processed in the Appwrite internal queue server.
+Get the number of metrics that are waiting to be processed in the Appwrite internal queue server.

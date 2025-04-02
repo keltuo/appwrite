@@ -1,23 +1,21 @@
-import json 
+import json
 import os
-from appwrite.client import Client
-from appwrite.services.storage import Storage
 
-# Setup appwrite client
-client = Client()
-client.set_endpoint(os.environ["APPWRITE_ENDPOINT"]) # PRIVATE IP OF YOUR APPWRITE CONTAINER
-client.set_project(os.environ["APPWRITE_PROJECT"]) # YOUR PROJECT ID
-client.set_key(os.environ["APPWRITE_SECRET"])
+def main(context):
+    context.log('Amazing Function Log')
 
-storage = Storage(client)
-# result = storage.get_file(os.environ["APPWRITE_FILEID"])
-
-print(os.environ["APPWRITE_FUNCTION_ID"])
-print(os.environ["APPWRITE_FUNCTION_NAME"])
-print(os.environ["APPWRITE_FUNCTION_TAG"])
-print(os.environ["APPWRITE_FUNCTION_TRIGGER"])
-print(os.environ["APPWRITE_FUNCTION_ENV_NAME"])
-print(os.environ["APPWRITE_FUNCTION_ENV_VERSION"])
-# print(result["$id"])
-print(os.environ["APPWRITE_FUNCTION_EVENT"])
-print(os.environ["APPWRITE_FUNCTION_EVENT_PAYLOAD"])
+    return context.res.json({
+        'APPWRITE_FUNCTION_ID' : os.environ.get('APPWRITE_FUNCTION_ID',''),
+        'APPWRITE_FUNCTION_NAME' : os.environ.get('APPWRITE_FUNCTION_NAME',''),
+        'APPWRITE_FUNCTION_DEPLOYMENT' : os.environ.get('APPWRITE_FUNCTION_DEPLOYMENT',''),
+        'APPWRITE_FUNCTION_TRIGGER' : context.req.headers.get('x-appwrite-trigger', ''),
+        'APPWRITE_FUNCTION_RUNTIME_NAME' : os.environ.get('APPWRITE_FUNCTION_RUNTIME_NAME',''),
+        'APPWRITE_FUNCTION_RUNTIME_VERSION' : os.environ.get('APPWRITE_FUNCTION_RUNTIME_VERSION',''),
+        'APPWRITE_FUNCTION_EVENT' : context.req.headers.get('x-appwrite-event', ''),
+        'APPWRITE_FUNCTION_EVENT_DATA' : context.req.body_raw,
+        'APPWRITE_FUNCTION_DATA' : context.req.body_raw,
+        'APPWRITE_FUNCTION_USER_ID' : context.req.headers.get('x-appwrite-user-id', ''),
+        'APPWRITE_FUNCTION_JWT' : context.req.headers.get('x-appwrite-user-jwt', ''),
+        'APPWRITE_FUNCTION_PROJECT_ID' : os.environ.get('APPWRITE_FUNCTION_PROJECT_ID',''),
+        'CUSTOM_VARIABLE' : os.environ.get('CUSTOM_VARIABLE',''),
+    })

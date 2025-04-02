@@ -6,7 +6,7 @@ use Tests\E2E\Client;
 
 trait AvatarsBase
 {
-    public function testGetCreditCard():array
+    public function testGetCreditCard(): array
     {
         /**
          * Test for SUCCESS
@@ -55,7 +55,7 @@ trait AvatarsBase
         ]);
 
         $this->assertEquals(400, $response['headers']['status-code']);
-       
+
         $response = $this->client->call(Client::METHOD_GET, '/avatars/credit-cards/visa', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
@@ -65,11 +65,11 @@ trait AvatarsBase
         ]);
 
         $this->assertEquals(400, $response['headers']['status-code']);
-       
+
         return [];
     }
 
-    public function testGetBrowser():array
+    public function testGetBrowser(): array
     {
         /**
          * Test for SUCCESS
@@ -104,7 +104,7 @@ trait AvatarsBase
         $this->assertEquals(200, $response['headers']['status-code']);
         $this->assertEquals('image/png', $response['headers']['content-type']);
         $this->assertNotEmpty($response['body']);
-        
+
         /**
          * Test for FAILURE
          */
@@ -118,7 +118,7 @@ trait AvatarsBase
         ]);
 
         $this->assertEquals(400, $response['headers']['status-code']);
-        
+
         $response = $this->client->call(Client::METHOD_GET, '/avatars/browsers/ch', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
@@ -126,13 +126,13 @@ trait AvatarsBase
             'height' => 300,
             'quality' => 30,
         ]);
-            
+
         $this->assertEquals(400, $response['headers']['status-code']);
 
         return [];
     }
 
-    public function testGetFlag():array
+    public function testGetFlag(): array
     {
         /**
          * Test for SUCCESS
@@ -167,7 +167,7 @@ trait AvatarsBase
         $this->assertEquals(200, $response['headers']['status-code']);
         $this->assertEquals('image/png', $response['headers']['content-type']);
         $this->assertNotEmpty($response['body']);
-        
+
         /**
          * Test for FAILURE
          */
@@ -180,7 +180,7 @@ trait AvatarsBase
         ]);
 
         $this->assertEquals(400, $response['headers']['status-code']);
-        
+
         $response = $this->client->call(Client::METHOD_GET, '/avatars/flags/us', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
@@ -188,13 +188,13 @@ trait AvatarsBase
             'height' => 300,
             'quality' => 30,
         ]);
-            
+
         $this->assertEquals(400, $response['headers']['status-code']);
 
         return [];
     }
 
-    public function testGetImage():array
+    public function testGetImage(): array
     {
         /**
          * Test for SUCCESS
@@ -202,7 +202,7 @@ trait AvatarsBase
         $response = $this->client->call(Client::METHOD_GET, '/avatars/image', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
-            'url' => 'https://appwrite.io/images/apple.png',
+            'url' => 'https://appwrite.io/images/open-graph/website.png',
         ]);
 
         $this->assertEquals(200, $response['headers']['status-code']);
@@ -212,7 +212,7 @@ trait AvatarsBase
         $response = $this->client->call(Client::METHOD_GET, '/avatars/image', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
-            'url' => 'https://appwrite.io/images/apple.png',
+            'url' => 'https://appwrite.io/images/open-graph/website.png',
             'width' => 200,
             'height' => 200,
         ]);
@@ -224,7 +224,7 @@ trait AvatarsBase
         $response = $this->client->call(Client::METHOD_GET, '/avatars/image', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
-            'url' => 'https://appwrite.io/images/apple.png',
+            'url' => 'https://appwrite.io/images/open-graph/website.png',
             'width' => 300,
             'height' => 300,
             'quality' => 30,
@@ -233,7 +233,7 @@ trait AvatarsBase
         $this->assertEquals(200, $response['headers']['status-code']);
         $this->assertEquals('image/png', $response['headers']['content-type']);
         $this->assertNotEmpty($response['body']);
-        
+
         /**
          * Test for FAILURE
          */
@@ -251,10 +251,18 @@ trait AvatarsBase
         $response = $this->client->call(Client::METHOD_GET, '/avatars/image', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
-            'url' => 'https://appwrite.io/images/apple.png',
+            'url' => 'https://appwrite.io/images/open-graph/website.png',
             'width' => 2001,
             'height' => 300,
             'quality' => 30,
+        ]);
+
+        $this->assertEquals(400, $response['headers']['status-code']);
+
+        $response = $this->client->call(Client::METHOD_GET, '/avatars/image', [
+            'x-appwrite-project' => $this->getProject()['$id'],
+        ], [
+            'url' => 'invalid://appwrite.io/images/apple.png'
         ]);
 
         $this->assertEquals(400, $response['headers']['status-code']);
@@ -264,7 +272,7 @@ trait AvatarsBase
         return [];
     }
 
-    public function testGetFavicon():array
+    public function testGetFavicon(): array
     {
         /**
          * Test for SUCCESS
@@ -272,32 +280,12 @@ trait AvatarsBase
         $response = $this->client->call(Client::METHOD_GET, '/avatars/favicon', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
-            'url' => 'https://appwrite.io/',
+            'url' => 'https://github.com/',
         ]);
 
         $this->assertEquals(200, $response['headers']['status-code']);
-        $this->assertEquals('image/png', $response['headers']['content-type']);
+        $this->assertEquals('image/x-icon', $response['headers']['content-type']);
         $this->assertNotEmpty($response['body']);
-
-        // $response = $this->client->call(Client::METHOD_GET, '/avatars/favicon', [
-        //     'x-appwrite-project' => $this->getProject()['$id'],
-        // ], [
-        //     'url' => 'https://www.bbc.com/',
-        // ]);
-
-        // $this->assertEquals(200, $response['headers']['status-code']);
-        // $this->assertEquals('image/png', $response['headers']['content-type']);
-        // $this->assertNotEmpty($response['body']);
-
-        // $response = $this->client->call(Client::METHOD_GET, '/avatars/favicon', [
-        //     'x-appwrite-project' => $this->getProject()['$id'],
-        // ], [
-        //     'url' => 'https://edition.cnn.com/',
-        // ]);
-
-        // $this->assertEquals(200, $response['headers']['status-code']);
-        // $this->assertEquals('image/x-icon', $response['headers']['content-type']);
-        // $this->assertNotEmpty($response['body']);
 
         /**
          * Test for FAILURE
@@ -318,10 +306,18 @@ trait AvatarsBase
 
         $this->assertEquals(404, $response['headers']['status-code']);
 
+        $response = $this->client->call(Client::METHOD_GET, '/avatars/favicon', [
+            'x-appwrite-project' => $this->getProject()['$id'],
+        ], [
+            'url' => 'http://localhost',
+        ]);
+
+        $this->assertEquals(404, $response['headers']['status-code']);
+
         return [];
     }
 
-    public function testGetQR():array
+    public function testGetQR(): array
     {
         /**
          * Test for SUCCESS
@@ -400,7 +396,7 @@ trait AvatarsBase
         $this->assertEquals('attachment; filename="qr.png"', $response['headers']['content-disposition']);
         $this->assertEquals('image/png', $response['headers']['content-type']);
         $this->assertNotEmpty($response['body']);
-        
+
         /**
          * Test for FAILURE
          */
@@ -483,7 +479,6 @@ trait AvatarsBase
             'name' => 'W W',
             'width' => 200,
             'height' => 200,
-            'color' => 'ffffff',
             'background' => '000000',
         ]);
 
@@ -500,34 +495,57 @@ trait AvatarsBase
             'name' => 'W W',
             'width' => 200000,
             'height' => 200,
-            'color' => 'ffffff',
             'background' => '000000',
         ]);
 
         $this->assertEquals(400, $response['headers']['status-code']);
+    }
 
+    public function testInitialImage()
+    {
         $response = $this->client->call(Client::METHOD_GET, '/avatars/initials', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
             'name' => 'W W',
             'width' => 200,
             'height' => 200,
-            'color' => 'white',
-            'background' => '000000',
         ]);
 
-        $this->assertEquals(400, $response['headers']['status-code']);
+        $this->assertEquals(200, $response['headers']['status-code']);
+        $this->assertEquals('image/png', $response['headers']['content-type']);
+        $this->assertNotEmpty($response['body']);
 
+        $image = new \Imagick();
+        $image->readImageBlob($response['body']);
+        $original = new \Imagick(__DIR__ . '/../../../resources/initials.png');
+
+        $this->assertEquals($image->getImageWidth(), $original->getImageWidth());
+        $this->assertEquals($image->getImageHeight(), $original->getImageHeight());
+        $this->assertEquals('PNG', $image->getImageFormat());
+        $this->assertEquals(strlen(\file_get_contents(__DIR__ . '/../../../resources/initials.png')), strlen($response['body']));
+    }
+
+    public function testSpecialCharsInitalImage()
+    {
         $response = $this->client->call(Client::METHOD_GET, '/avatars/initials', [
             'x-appwrite-project' => $this->getProject()['$id'],
         ], [
-            'name' => 'W W',
+            'name' => 'W (Hello) W',
             'width' => 200,
             'height' => 200,
-            'color' => 'ffffff',
-            'background' => 'black',
         ]);
 
-        $this->assertEquals(400, $response['headers']['status-code']);
+        $this->assertEquals(200, $response['headers']['status-code']);
+        $this->assertEquals('image/png', $response['headers']['content-type']);
+        $this->assertNotEmpty($response['body']);
+
+        $image = new \Imagick();
+        $image->readImageBlob($response['body']);
+        $original = new \Imagick(__DIR__ . '/../../../resources/initials.png');
+
+        $this->assertEquals($image->getImageWidth(), $original->getImageWidth());
+        $this->assertEquals($image->getImageHeight(), $original->getImageHeight());
+        $this->assertEquals('PNG', $image->getImageFormat());
+        $this->assertEquals(strlen(\file_get_contents(__DIR__ . '/../../../resources/initials.png')), strlen($response['body']));
     }
 }

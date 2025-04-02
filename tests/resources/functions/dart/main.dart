@@ -1,26 +1,21 @@
-import "dart:io";
-import "package:dart_appwrite/dart_appwrite.dart";
+import 'dart:io' show Platform;
 
-void main() { // Init SDK
-  Client client = Client();
+Future<dynamic> main(final context) async {
+    context.log('Amazing Function Log');
 
-  client
-    .setEndpoint(Platform.environment["APPWRITE_ENDPOINT"]) // Your API Endpoint
-    .setProject(Platform.environment["APPWRITE_PROJECT"]) // Your project ID
-    .setKey(Platform.environment["APPWRITE_SECRET"]) // Your secret API key
-  ;
-
-  Storage storage = Storage(client);
-
-  //Future result = storage.getFile(fileId: '[FILE_ID]');
-
-  print(Platform.environment["APPWRITE_FUNCTION_ID"]);
-  print(Platform.environment["APPWRITE_FUNCTION_NAME"]);
-  print(Platform.environment["APPWRITE_FUNCTION_TAG"]);
-  print(Platform.environment["APPWRITE_FUNCTION_TRIGGER"]);
-  print(Platform.environment["APPWRITE_FUNCTION_ENV_NAME"]);
-  print(Platform.environment["APPWRITE_FUNCTION_ENV_VERSION"]);
-  // print(result['$id']);
-  print(Platform.environment["APPWRITE_FUNCTION_EVENT"]);
-  print(Platform.environment["APPWRITE_FUNCTION_EVENT_PAYLOAD"]);
+    response.json({
+        'APPWRITE_FUNCTION_ID' : Platform.environment['APPWRITE_FUNCTION_ID'] ?? '',
+        'APPWRITE_FUNCTION_NAME' : Platform.environment['APPWRITE_FUNCTION_NAME'] ?? '',
+        'APPWRITE_FUNCTION_DEPLOYMENT' : Platform.environment['APPWRITE_FUNCTION_DEPLOYMENT'] ?? '',
+        'APPWRITE_FUNCTION_TRIGGER' : context.req.headers['x-appwrite-trigger'] ?? '',
+        'APPWRITE_FUNCTION_RUNTIME_NAME' : Platform.environment['APPWRITE_FUNCTION_RUNTIME_NAME'] ?? '',
+        'APPWRITE_FUNCTION_RUNTIME_VERSION' : Platform.environment['APPWRITE_FUNCTION_RUNTIME_VERSION'] ?? '',
+        'APPWRITE_FUNCTION_EVENT' : context.req.headers['x-appwrite-event'] ?? '',
+        'APPWRITE_FUNCTION_EVENT_DATA' : context.req.bodyRaw ?? '',
+        'APPWRITE_FUNCTION_DATA' : context.req.bodyRaw ?? '',
+        'APPWRITE_FUNCTION_USER_ID' : context.req.headers['x-appwrite-user-id'] ?? '',
+        'APPWRITE_FUNCTION_JWT' : context.req.headers['x-appwrite-user-jwt'] ?? '',
+        'APPWRITE_FUNCTION_PROJECT_ID' : Platform.environment['APPWRITE_FUNCTION_PROJECT_ID'] ?? '',
+        'CUSTOM_VARIABLE' : request.variables['CUSTOM_VARIABLE']
+    });
 }

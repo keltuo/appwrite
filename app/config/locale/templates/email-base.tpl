@@ -1,238 +1,136 @@
 <!doctype html>
 <html>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
+        <style>
+            body {
+                padding: 32px;
+                line-height: 1.5;
+                color: #616b7c;
+                font-size: 15px;
+                font-weight: 400;
+                font-family: "Inter", sans-serif;
+                background-color: #ffffff;
+                margin: 0;
+                padding: 0;
+            }
+            a {
+                color: currentColor;
+                word-break: break-all;
+            }
+            table {
+                width: 100%;
+                border-spacing: 0 !important;
+            }
+            table, tr, th, td {
+                margin: 0;
+                padding: 0;
+            }
+            td {
+                vertical-align: top;
+            }
+            .main {
+                max-width: 650px;
+                margin: 0 auto;
+                margin-top: 32px;
+            }
+            h1 {
+                font-size: 22px;
+                margin-bottom: 0px;
+                margin-top: 0px;
+                color: #373b4d;
+            }
+            h2 {
+                font-size: 20px;
+                font-weight: 600;
+                color: #373b4d;
+            }
+            h3 {
+                font-size: 14px;
+                font-weight: 500;
+                color: #373b4d;
+                line-height: 21px;
+                margin: 0;
+                padding: 0;
+            }
+            h4 {
+                font-family: "DM Sans", sans-serif;
+                font-weight: 600;
+                font-size: 12px;
+                color: #4f5769;
+                margin: 0;
+                padding: 0;
+            }
+            hr {
+                border: none;
+                border-top: 1px solid #e8e9f0;
+            }
+        </style>
+    </head>
 
 <head>
-  <meta name="viewport" content="width=device-width" />
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>{{title}}</title>
-  <style>
-    body {
-      background-color: {{bg-body}};
-      color: {{text-content}};
-      font-family: sans-serif;
-      -webkit-font-smoothing: antialiased;
-      font-size: 14px;
-      line-height: 1.4;
-      margin: 0;
-      padding: 0;
-      -ms-text-size-adjust: 100%;
-      -webkit-text-size-adjust: 100%;
-    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap"
+            rel="stylesheet">
+    <style>
+        a { color:currentColor; word-break: break-all; }
+        body {
+            background-color: #ffffff;
+            padding: 32px;
+            color: #616B7C;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            line-height: 150%;
+        }
 
-    table {
-      border-collapse: separate;
-      mso-table-lspace: 0pt;
-      mso-table-rspace: 0pt;
-      width: 100%;
-    }
+        table {
+            width: 100%;
+            border-spacing: 0 !important;
+        }
 
-    table td {
-      font-family: sans-serif;
-      font-size: 14px;
-      vertical-align: top;
-    }
+        table,
+        tr,
+        th,
+        td {
+            margin: 0;
+            padding: 0;
+        }
 
-    .body {
-      background-color: {{bg-body}};
-      width: 100%;
-    }
+        td {
+            vertical-align: top;
+        }
 
-    .container {
-      display: block;
-      margin: 0 auto !important;
-      max-width: 580px;
-      padding: 10px;
-      width: 580px;
-    }
+        h* {
+            font-family: 'Poppins', sans-serif;
+        }
 
-    .content {
-      box-sizing: border-box;
-      display: block;
-      margin: 0 auto;
-      max-width: 580px;
-      padding: 10px;
-      color: {{text-content}};
-    }
+        hr {
+            border: none;
+            border-top: 1px solid #E8E9F0;
+        }
 
-    .main {
-      background: {{bg-content}};
-      border-radius: 3px;
-      width: 100%;
-    }
-
-    .wrapper {
-      box-sizing: border-box;
-      padding: 20px;
-    }
-
-    .content-block {
-      padding-bottom: 10px;
-      padding-top: 10px;
-    }
-
-    p {
-      font-family: sans-serif;
-      font-size: 14px;
-      font-weight: normal;
-      margin: 0;
-      margin-bottom: 15px;
-    }
-
-    a {
-      word-break: break-all;
-    }
-
-    .btn {
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    .btn>tbody>tr>td {
-      padding-bottom: 15px;
-    }
-
-    .btn table {
-      width: auto;
-    }
-
-    .btn table td {
-      background-color: {{bg-content}};
-      border-radius: 5px;
-      text-align: center;
-    }
-
-    .btn a {
-      background-color: {{bg-content}};
-      border: solid 1px {{bg-cta}};
-      border-radius: 5px;
-      box-sizing: border-box;
-      color: #3498db;
-      cursor: pointer;
-      display: inline-block;
-      font-size: 14px;
-      font-weight: bold;
-      margin: 0;
-      padding: 12px 25px;
-      text-decoration: none;
-      text-transform: capitalize;
-    }
-
-    .btn-primary table td {
-      background-color: {{bg-cta}};
-    }
-
-    .btn-primary a {
-      background-color: {{bg-cta}};
-      border-color: {{bg-cta}};
-      color: {{text-cta}};
-    }
-
-    @media only screen and (max-width: 620px) {
-      table[class=body] h1 {
-        font-size: 28px !important;
-        margin-bottom: 10px !important;
-      }
-
-      table[class=body] p {
-        font-size: 16px !important;
-      }
-
-      table[class=body] .wrapper {
-        padding: 10px !important;
-      }
-
-      table[class=body] .content {
-        padding: 0 !important;
-      }
-
-      table[class=body] .container {
-        padding: 0 !important;
-        width: 100% !important;
-      }
-
-      table[class=body] .main {
-        border-left-width: 0 !important;
-        border-radius: 0 !important;
-        border-right-width: 0 !important;
-      }
-
-      table[class=body] .btn table {
-        width: 100% !important;
-      }
-
-      table[class=body] .btn a {
-        width: 100% !important;
-      }
-    }
-
-    @media all {
-      .ExternalClass {
-        width: 100%;
-      }
-
-      .ExternalClass,
-      .ExternalClass p,
-      .ExternalClass span,
-      .ExternalClass font,
-      .ExternalClass td,
-      .ExternalClass div {
-        line-height: 100%;
-      }
-
-      .apple-link a {
-        color: inherit !important;
-        font-family: inherit !important;
-        font-size: inherit !important;
-        font-weight: inherit !important;
-        line-height: inherit !important;
-        text-decoration: none !important;
-      }
-
-      #MessageViewBody a {
-        color: inherit;
-        text-decoration: none;
-        font-size: inherit;
-        font-family: inherit;
-        font-weight: inherit;
-        line-height: inherit;
-      }
-
-      .btn-primary table td:hover {
-        background-color: {{bg-cta-hover}} !important;
-      }
-
-      .btn-primary a:hover {
-        background-color: {{bg-cta-hover}} !important;
-        border-color: {{bg-cta-hover}} !important;
-      }
-    }
-  </style>
+        p {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 
 <body style="direction: {{direction}}">
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
-    <tr>
-      <td>&nbsp;</td>
-      <td class="container">
-        <div class="content">
-          <table role="presentation" class="main">
-            <tr>
-              <td class="wrapper">
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td>
-                      {{content}}
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </div>
-      </td>
-      <td>&nbsp;</td>
-    </tr>
-  </table>
-</body>
 
+<div style="max-width:650px; word-wrap: break-word; overflow-wrap: break-word;
+  word-break: normal; margin:0 auto;">
+    <table style="margin-top: 32px">
+        <tr>
+            <td>
+                {{body}}
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
 </html>

@@ -21,18 +21,10 @@ class Compose
 
         $this->compose['services'] = (isset($this->compose['services']) && is_array($this->compose['services']))
             ? $this->compose['services'] : [];
-        
+
         foreach ($this->compose['services'] as $key => &$service) {
             $service = new Service($service);
         }
-    }
-
-    /**
-     * @return string
-     */
-    public function getVersion(): string
-    {
-        return (isset($this->compose['version'])) ? $this->compose['version'] : '';
     }
 
     /**

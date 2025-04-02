@@ -1,23 +1,19 @@
-const sdk = require('node-appwrite');
+module.exports = async(context) => {
+    context.log('Amazing Function Log');
 
-let client = new sdk.Client();
-
-client
-    .setEndpoint(process.env.APPWRITE_ENDPOINT) // Your API Endpoint
-    .setProject(process.env.APPWRITE_PROJECT) // Your project ID
-    .setKey(process.env.APPWRITE_SECRET) // Your secret API key
-;
-
-let storage = new sdk.Storage(client);
-
-// let result = storage.getFile(process.env.APPWRITE_FILEID);
-
-console.log(process.env.APPWRITE_FUNCTION_ID);
-console.log(process.env.APPWRITE_FUNCTION_NAME);
-console.log(process.env.APPWRITE_FUNCTION_TAG);
-console.log(process.env.APPWRITE_FUNCTION_TRIGGER);
-console.log(process.env.APPWRITE_FUNCTION_ENV_NAME);
-console.log(process.env.APPWRITE_FUNCTION_ENV_VERSION);
-// console.log(result['$id']);
-console.log(process.env.APPWRITE_FUNCTION_EVENT);
-console.log(process.env.APPWRITE_FUNCTION_EVENT_PAYLOAD);
+    return context.res.json({
+        'APPWRITE_FUNCTION_ID' : process.env.APPWRITE_FUNCTION_ID ?? '',
+        'APPWRITE_FUNCTION_NAME' : process.env.APPWRITE_FUNCTION_NAME ?? '',
+        'APPWRITE_FUNCTION_DEPLOYMENT' : process.env.APPWRITE_FUNCTION_DEPLOYMENT ?? '',
+        'APPWRITE_FUNCTION_TRIGGER' : context.req.headers['x-appwrite-trigger'] ?? '',
+        'APPWRITE_FUNCTION_RUNTIME_NAME' : process.env.APPWRITE_FUNCTION_RUNTIME_NAME,
+        'APPWRITE_FUNCTION_RUNTIME_VERSION' : process.env.APPWRITE_FUNCTION_RUNTIME_VERSION,
+        'APPWRITE_FUNCTION_EVENT' : context.req.headers['x-appwrite-event'] ?? '',
+        'APPWRITE_FUNCTION_EVENT_DATA' : context.req.bodyRaw ?? '',
+        'APPWRITE_FUNCTION_DATA' : context.req.bodyRaw ?? '',
+        'APPWRITE_FUNCTION_USER_ID' : context.req.headers['x-appwrite-user-id'] ?? '',
+        'APPWRITE_FUNCTION_JWT' : context.req.headers['x-appwrite-user-jwt'] ?? '',
+        'APPWRITE_FUNCTION_PROJECT_ID' : process.env.APPWRITE_FUNCTION_PROJECT_ID,
+        'CUSTOM_VARIABLE' : process.env.CUSTOM_VARIABLE
+    });
+}
