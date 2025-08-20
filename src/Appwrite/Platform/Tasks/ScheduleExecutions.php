@@ -6,6 +6,7 @@ use Appwrite\Event\Func;
 use Swoole\Coroutine as Co;
 use Utopia\Database\Database;
 use Utopia\Pools\Group;
+use Utopia\System\System;
 
 class ScheduleExecutions extends ScheduleBase
 {
@@ -22,21 +23,31 @@ class ScheduleExecutions extends ScheduleBase
         return 'execution';
     }
 
-    protected function enqueueResources(Group $pools, Database $dbForConsole): void
+    public static function getCollectionId(): string
     {
-        $queue = $pools->get('queue')->pop();
-        $connection = $queue->getResource();
-        $queueForFunctions = new Func($connection);
+        return 'executions';
+    }
+
+    protected function enqueueResources(Group $pools, Database $dbForPlatform, callable $getProjectDB): void
+    {
         $intervalEnd = (new \DateTime())->modify('+' . self::ENQUEUE_TIMER . ' seconds');
+
+        $isRedisFallback = \str_contains(System::getEnv('_APP_WORKER_REDIS_FALLBACK', ''), 'functions');
+
+        $queueForFunctions = new Func(
+            $isRedisFallback
+            ? $this->publisherRedis
+            : $this->publisher
+        );
 
         foreach ($this->schedules as $schedule) {
             if (!$schedule['active']) {
-                $dbForConsole->deleteDocument(
+                $dbForPlatform->deleteDocument(
                     'schedules',
                     $schedule['$id'],
                 );
 
-                unset($this->schedules[$schedule['$internalId']]);
+                unset($this->schedules[$schedule['$sequence']]);
                 continue;
             }
 
@@ -45,20 +56,22 @@ class ScheduleExecutions extends ScheduleBase
                 continue;
             }
 
-            $data = $dbForConsole->getDocument(
+            $data = $dbForPlatform->getDocument(
                 'schedules',
                 $schedule['$id'],
             )->getAttribute('data', []);
 
             $delay = $scheduledAt->getTimestamp() - (new \DateTime())->getTimestamp();
 
-            \go(function () use ($queueForFunctions, $schedule, $delay, $data) {
+            $this->updateProjectAccess($schedule['project'], $dbForPlatform);
+
+            \go(function () use ($queueForFunctions, $schedule, $scheduledAt, $delay, $data) {
                 Co::sleep($delay);
 
                 $queueForFunctions->setType('schedule')
                     // Set functionId instead of function as we don't have $dbForProject
                     // TODO: Refactor to use function instead of functionId
-                    ->setFunctionId($schedule['resource']['functionId'])
+                    ->setFunctionId($schedule['resource']['resourceId'])
                     ->setExecution($schedule['resource'])
                     ->setMethod($data['method'] ?? 'POST')
                     ->setPath($data['path'] ?? '/')
@@ -67,16 +80,16 @@ class ScheduleExecutions extends ScheduleBase
                     ->setProject($schedule['project'])
                     ->setUserId($data['userId'] ?? '')
                     ->trigger();
+
+                $this->recordEnqueueDelay($scheduledAt);
             });
 
-            $dbForConsole->deleteDocument(
+            $dbForPlatform->deleteDocument(
                 'schedules',
                 $schedule['$id'],
             );
 
-            unset($this->schedules[$schedule['$internalId']]);
+            unset($this->schedules[$schedule['$sequence']]);
         }
-
-        $queue->reclaim();
     }
 }

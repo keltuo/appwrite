@@ -7,7 +7,7 @@ use Tests\E2E\Client;
 use Tests\E2E\Scopes\ProjectCustom;
 use Tests\E2E\Scopes\Scope;
 use Tests\E2E\Scopes\SideClient;
-use Utopia\CLI\Console;
+use Tests\E2E\Services\Functions\FunctionsBase;
 use Utopia\Database\Helpers\ID;
 use Utopia\Database\Helpers\Permission;
 use Utopia\Database\Helpers\Role;
@@ -15,6 +15,7 @@ use WebSocket\ConnectionException;
 
 class RealtimeCustomClientTest extends Scope
 {
+    use FunctionsBase;
     use RealtimeBase;
     use ProjectCustom;
     use SideClient;
@@ -106,6 +107,30 @@ class RealtimeCustomClientTest extends Scope
         $this->assertContains('collections.1.documents.1', $response['data']['channels']);
         $this->assertContains('collections.2.documents.2', $response['data']['channels']);
         $this->assertEquals($userId, $response['data']['user']['$id']);
+
+        $client->close();
+    }
+
+    public function testPingPong()
+    {
+        $client = $this->getWebsocket(['files'], [
+            'origin' => 'http://localhost'
+        ]);
+        $response = json_decode($client->receive(), true);
+
+        $this->assertArrayHasKey('type', $response);
+        $this->assertArrayHasKey('data', $response);
+        $this->assertEquals('connected', $response['type']);
+        $this->assertNotEmpty($response['data']);
+        $this->assertCount(1, $response['data']['channels']);
+        $this->assertContains('files', $response['data']['channels']);
+
+        $client->send(\json_encode([
+            'type' => 'ping'
+        ]));
+
+        $response = json_decode($client->receive(), true);
+        $this->assertEquals('pong', $response['type']);
 
         $client->close();
     }
@@ -390,7 +415,8 @@ class RealtimeCustomClientTest extends Scope
         $this->assertContains("users.*", $response['data']['events']);
 
         $lastEmail = $this->getLastEmail();
-        $verification = substr($lastEmail['text'], strpos($lastEmail['text'], '&secret=', 0) + 8, 256);
+        $tokens = $this->extractQueryParamsFromEmailLink($lastEmail['html']);
+        $verification = $tokens['secret'];
 
         /**
          * Test Account Verification Complete
@@ -587,7 +613,8 @@ class RealtimeCustomClientTest extends Scope
         $response = json_decode($client->receive(), true);
 
         $lastEmail = $this->getLastEmail();
-        $recovery = substr($lastEmail['text'], strpos($lastEmail['text'], '&secret=', 0) + 8, 256);
+        $tokens = $this->extractQueryParamsFromEmailLink($lastEmail['html']);
+        $recovery = $tokens['secret'];
 
         $this->assertArrayHasKey('type', $response);
         $this->assertArrayHasKey('data', $response);
@@ -738,7 +765,6 @@ class RealtimeCustomClientTest extends Scope
         $response = json_decode($client->receive(), true);
 
         $documentId = $document['body']['$id'];
-
         $this->assertArrayHasKey('type', $response);
         $this->assertArrayHasKey('data', $response);
         $this->assertEquals('event', $response['type']);
@@ -1259,10 +1285,10 @@ class RealtimeCustomClientTest extends Scope
             'x-appwrite-key' => $this->getProject()['apiKey']
         ], [
             'functionId' => ID::unique(),
-            'name' => 'Test',
+            'name' => 'Test timeout execution',
             'execute' => ['users'],
-            'runtime' => 'php-8.0',
-            'entrypoint' => 'index.php',
+            'runtime' => 'node-22',
+            'entrypoint' => 'index.js',
             'timeout' => 10,
         ]);
 
@@ -1271,20 +1297,12 @@ class RealtimeCustomClientTest extends Scope
         $this->assertEquals($function['headers']['status-code'], 201);
         $this->assertNotEmpty($function['body']['$id']);
 
-        $folder = 'timeout';
-        $stderr = '';
-        $stdout = '';
-        $code = realpath(__DIR__ . '/../../../resources/functions') . "/{$folder}/code.tar.gz";
-
-        Console::execute('cd ' . realpath(__DIR__ . "/../../../resources/functions") . "/{$folder}  && tar --exclude code.tar.gz -czf code.tar.gz .", '', $stdout, $stderr);
-
         $deployment = $this->client->call(Client::METHOD_POST, '/functions/' . $functionId . '/deployments', array_merge([
             'content-type' => 'multipart/form-data',
             'x-appwrite-project' => $this->getProject()['$id'],
             'x-appwrite-key' => $this->getProject()['apiKey']
         ]), [
-            'entrypoint' => 'index.php',
-            'code' => new CURLFile($code, 'application/x-gzip', basename($code)),
+            'code' => $this->packageFunction('timeout'),
             'activate' => true
         ]);
 
@@ -1294,22 +1312,15 @@ class RealtimeCustomClientTest extends Scope
         $this->assertNotEmpty($deployment['body']['$id']);
 
         // Poll until deployment is built
-        while (true) {
+        $this->assertEventually(function () use ($function, $deploymentId) {
             $deployment = $this->client->call(Client::METHOD_GET, '/functions/' . $function['body']['$id'] . '/deployments/' . $deploymentId, [
                 'content-type' => 'application/json',
                 'x-appwrite-project' => $this->getProject()['$id'],
                 'x-appwrite-key' => $this->getProject()['apiKey'],
             ]);
 
-            if (
-                $deployment['headers']['status-code'] >= 400
-                || \in_array($deployment['body']['status'], ['ready', 'failed'])
-            ) {
-                break;
-            }
-
-            \sleep(1);
-        }
+            $this->assertEquals('ready', $deployment['body']['status'], \json_encode($deployment['body']));
+        });
 
         $response = $this->client->call(Client::METHOD_PATCH, '/functions/' . $functionId . '/deployments/' . $deploymentId, array_merge([
             'content-type' => 'application/json',
@@ -1340,8 +1351,9 @@ class RealtimeCustomClientTest extends Scope
         $this->assertEquals('event', $response['type']);
         $this->assertNotEmpty($response['data']);
         $this->assertArrayHasKey('timestamp', $response['data']);
-        $this->assertCount(4, $response['data']['channels']);
+        $this->assertCount(5, $response['data']['channels']);
         $this->assertContains('console', $response['data']['channels']);
+        $this->assertContains("projects.{$this->getProject()['$id']}", $response['data']['channels']);
         $this->assertContains('executions', $response['data']['channels']);
         $this->assertContains("executions.{$executionId}", $response['data']['channels']);
         $this->assertContains("functions.{$functionId}", $response['data']['channels']);
@@ -1362,8 +1374,9 @@ class RealtimeCustomClientTest extends Scope
         $this->assertEquals('event', $responseUpdate['type']);
         $this->assertNotEmpty($responseUpdate['data']);
         $this->assertArrayHasKey('timestamp', $responseUpdate['data']);
-        $this->assertCount(4, $responseUpdate['data']['channels']);
+        $this->assertCount(5, $responseUpdate['data']['channels']);
         $this->assertContains('console', $responseUpdate['data']['channels']);
+        $this->assertContains("projects.{$this->getProject()['$id']}", $response['data']['channels']);
         $this->assertContains('executions', $responseUpdate['data']['channels']);
         $this->assertContains("executions.{$executionId}", $responseUpdate['data']['channels']);
         $this->assertContains("functions.{$functionId}", $responseUpdate['data']['channels']);

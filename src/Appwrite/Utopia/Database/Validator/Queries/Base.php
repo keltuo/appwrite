@@ -24,9 +24,17 @@ class Base extends Queries
     public function __construct(string $collection, array $allowedAttributes)
     {
         $config = Config::getParam('collections', []);
-        $collections = array_merge($config['projects'], $config['buckets'], $config['databases'], $config['console']);
+
+        $collections = \array_merge(
+            $config['projects'],
+            $config['buckets'],
+            $config['databases'],
+            $config['console'],
+            $config['logs']
+        );
+
         $collection = $collections[$collection];
-        // array for constant lookup time
+
         $allowedAttributesLookup = [];
         foreach ($allowedAttributes as $attribute) {
             $allowedAttributesLookup[$attribute] = true;
@@ -35,6 +43,7 @@ class Base extends Queries
         $attributes = [];
         foreach ($collection['attributes'] as $attribute) {
             $key = $attribute['$id'];
+
             if (!isset($allowedAttributesLookup[$key])) {
                 continue;
             }
@@ -61,12 +70,17 @@ class Base extends Queries
             'type' => Database::VAR_DATETIME,
             'array' => false,
         ]);
+        $attributes[] = new Document([
+            'key' => '$sequence',
+            'type' => Database::VAR_INTEGER,
+            'array' => false,
+        ]);
 
         $validators = [
             new Limit(),
             new Offset(),
             new Cursor(),
-            new Filter($attributes),
+            new Filter($attributes, APP_DATABASE_QUERY_MAX_VALUES),
             new Order($attributes),
         ];
 

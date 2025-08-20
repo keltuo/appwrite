@@ -4,6 +4,7 @@ namespace Appwrite\GraphQL\Types;
 
 use Appwrite\GraphQL\Resolvers;
 use Appwrite\GraphQL\Types;
+use Appwrite\SDK\Method;
 use Exception;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
@@ -50,6 +51,7 @@ class Mapper
         $defaults = [
             'boolean' => Type::boolean(),
             'string' => Type::string(),
+            'payload' => Type::string(),
             'integer' => Type::int(),
             'double' => Type::float(),
             'datetime' => Type::string(),
@@ -77,6 +79,7 @@ class Mapper
     public static function route(
         App $utopia,
         Route $route,
+        Method $method,
         callable $complexity
     ): iterable {
         foreach (self::$blacklist as $blacklist) {
@@ -85,10 +88,27 @@ class Mapper
             }
         }
 
-        $names = $route->getLabel('sdk.response.model', 'none');
-        $models = \is_array($names)
-            ? \array_map(static fn ($m) => static::$models[$m], $names)
-            : [static::$models[$names]];
+        $responses = $method->getResponses() ?? [];
+
+        // If responses is an array, map each response to its model
+        if (\is_array($responses)) {
+            $models = [];
+            foreach ($responses as $response) {
+                $modelName = $response->getModel();
+
+                if (\is_array($modelName)) {
+                    foreach ($modelName as $name) {
+                        $models[] = static::$models[$name];
+                    }
+                } else {
+                    $models[] = static::$models[$modelName];
+                }
+            }
+        } else {
+            // If single response, get its model and wrap in array
+            $modelName = $responses->getModel();
+            $models = [static::$models[$modelName]];
+        }
 
         foreach ($models as $model) {
             $type = Mapper::model(\ucfirst($model->getType()));
@@ -97,13 +117,31 @@ class Mapper
             $list = false;
 
             foreach ($route->getParams() as $name => $parameter) {
+                $sdkParameters = $method->getParameters();
+
+                if (!empty($sdkParameters)) {
+                    $sdkMethodParameters = [];
+                    foreach ($sdkParameters as $sdkParameter) {
+                        $sdkMethodParameters[$sdkParameter->getName()] = $sdkParameter;
+                    }
+
+                    if (!\array_key_exists($name, $sdkMethodParameters)) {
+                        continue;
+                    }
+
+                    $optional = $sdkMethodParameters[$name]->getOptional();
+                } else {
+                    $optional = $parameter['optional'];
+                }
+
                 if ($name === 'queries') {
                     $list = true;
                 }
+
                 $parameterType = Mapper::param(
                     $utopia,
                     $parameter['validator'],
-                    !$parameter['optional'],
+                    !$optional,
                     $parameter['injections']
                 );
                 $params[$name] = [
@@ -188,7 +226,7 @@ class Mapper
             ];
 
             if (!$rule['required']) {
-                $fields[$escapedKey]['defaultValue'] = $rule['default'];
+                $fields[$escapedKey]['defaultValue'] = $rule['default'] ?? null;
             }
         }
 
@@ -229,48 +267,51 @@ class Mapper
         }
 
         switch ((!empty($validator)) ? $validator::class : '') {
-            case 'Appwrite\Network\Validator\CNAME':
-            case 'Appwrite\Task\Validator\Cron':
-            case 'Appwrite\Utopia\Database\Validator\CustomId':
-            case 'Utopia\Validator\Domain':
-            case 'Appwrite\Network\Validator\Email':
+            case 'Appwrite\Auth\Validator\Password':
             case 'Appwrite\Event\Validator\Event':
             case 'Appwrite\Event\Validator\FunctionEvent':
+            case 'Appwrite\Network\Validator\CNAME':
+            case 'Appwrite\Network\Validator\Email':
+            case 'Appwrite\Network\Validator\Redirect':
+            case 'Appwrite\Network\Validator\DNS':
+            case 'Appwrite\Network\Validator\Origin':
+            case 'Appwrite\Task\Validator\Cron':
+            case 'Appwrite\Utopia\Database\Validator\CustomId':
+            case 'Utopia\Database\Validator\Key':
+            case 'Utopia\Database\Validator\UID':
+            case 'Utopia\Validator\Domain':
             case 'Utopia\Validator\HexColor':
             case 'Utopia\Validator\Host':
             case 'Utopia\Validator\IP':
-            case 'Utopia\Database\Validator\Key':
             case 'Utopia\Validator\Origin':
-            case 'Appwrite\Auth\Validator\Password':
             case 'Utopia\Validator\Text':
-            case 'Utopia\Database\Validator\UID':
             case 'Utopia\Validator\URL':
             case 'Utopia\Validator\WhiteList':
             default:
                 $type = Type::string();
                 break;
-            case 'Utopia\Database\Validator\Authorization':
+            case 'Appwrite\Utopia\Database\Validator\Queries\Attributes':
             case 'Appwrite\Utopia\Database\Validator\Queries\Base':
             case 'Appwrite\Utopia\Database\Validator\Queries\Buckets':
             case 'Appwrite\Utopia\Database\Validator\Queries\Collections':
-            case 'Appwrite\Utopia\Database\Validator\Queries\Attributes':
-            case 'Appwrite\Utopia\Database\Validator\Queries\Indexes':
             case 'Appwrite\Utopia\Database\Validator\Queries\Databases':
             case 'Appwrite\Utopia\Database\Validator\Queries\Deployments':
-            case 'Appwrite\Utopia\Database\Validator\Queries\Installations':
-            case 'Utopia\Database\Validator\Queries\Documents':
             case 'Appwrite\Utopia\Database\Validator\Queries\Executions':
             case 'Appwrite\Utopia\Database\Validator\Queries\Files':
             case 'Appwrite\Utopia\Database\Validator\Queries\Functions':
-            case 'Appwrite\Utopia\Database\Validator\Queries\Rules':
+            case 'Appwrite\Utopia\Database\Validator\Queries\Indexes':
+            case 'Appwrite\Utopia\Database\Validator\Queries\Installations':
             case 'Appwrite\Utopia\Database\Validator\Queries\Memberships':
-            case 'Utopia\Database\Validator\Permissions':
             case 'Appwrite\Utopia\Database\Validator\Queries\Projects':
-            case 'Utopia\Database\Validator\Queries':
-            case 'Utopia\Database\Validator\Roles':
+            case 'Appwrite\Utopia\Database\Validator\Queries\Rules':
             case 'Appwrite\Utopia\Database\Validator\Queries\Teams':
             case 'Appwrite\Utopia\Database\Validator\Queries\Users':
             case 'Appwrite\Utopia\Database\Validator\Queries\Variables':
+            case 'Utopia\Database\Validator\Authorization':
+            case 'Utopia\Database\Validator\Permissions':
+            case 'Utopia\Database\Validator\Queries':
+            case 'Utopia\Database\Validator\Queries\Documents':
+            case 'Utopia\Database\Validator\Roles':
                 $type = Type::listOf(Type::string());
                 break;
             case 'Utopia\Validator\Boolean':

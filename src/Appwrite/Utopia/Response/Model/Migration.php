@@ -4,6 +4,7 @@ namespace Appwrite\Utopia\Response\Model;
 
 use Appwrite\Utopia\Response;
 use Appwrite\Utopia\Response\Model;
+use Utopia\Database\Document;
 
 class Migration extends Model
 {
@@ -18,7 +19,7 @@ class Migration extends Model
             ])
             ->addRule('$createdAt', [
                 'type' => self::TYPE_DATETIME,
-                'description' => 'Variable creation date in ISO 8601 format.',
+                'description' => 'Migration creation date in ISO 8601 format.',
                 'default' => '',
                 'example' => self::TYPE_DATETIME_EXAMPLE,
             ])
@@ -46,12 +47,25 @@ class Migration extends Model
                 'default' => '',
                 'example' => 'Appwrite',
             ])
+            ->addRule('destination', [
+                'type' => self::TYPE_STRING,
+                'description' => 'A string containing the type of destination of the migration.',
+                'default' => 'Appwrite',
+                'example' => 'Appwrite',
+            ])
             ->addRule('resources', [
                 'type' => self::TYPE_STRING,
-                'description' => 'Resources to migration.',
+                'description' => 'Resources to migrate.',
                 'default' => [],
                 'example' => ['user'],
                 'array' => true
+            ])
+            ->addRule('resourceId', [
+                'type' => self::TYPE_STRING,
+                'description' => 'Id of the resource to migrate.',
+                'default' => '',
+                'example' => 'databaseId:collectionId',
+                'array' => false
             ])
             ->addRule('statusCounters', [
                 'type' => self::TYPE_JSON,
@@ -93,5 +107,30 @@ class Migration extends Model
     public function getType(): string
     {
         return Response::MODEL_MIGRATION;
+    }
+
+    public function filter(Document $document): Document
+    {
+        $errors = $document->getAttribute('errors', []);
+        if (empty($errors)) {
+            return $document;
+        }
+
+        foreach ($errors as $index => $error) {
+            $decoded = json_decode($error, true);
+
+            // frontend doesn't need too many details.
+            if (is_array($decoded)) {
+                $errors[$index] = json_encode([
+                    'code' => $decoded['code'] ?? 0,
+                    'message' => $decoded['message'] ?? null,
+                ]);
+            }
+        }
+
+        // errors now only have code and message.
+        $document->setAttribute('errors', $errors);
+
+        return $document;
     }
 }
